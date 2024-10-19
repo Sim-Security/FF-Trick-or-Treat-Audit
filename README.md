@@ -48,11 +48,11 @@ Compatibilities
 
 Clone the repo
 ```bash
-git clone https://github.com/Cyfrin/2024-09-mystery-box.git
+git clone https://github.com/Cyfrin/2024-10-trick-or-treat.git
 ```
 Open in VSCode
 ```bash
-code 2024-09-mystery-box/
+code 2024-10-trick-or-treat/
 ```
 
 Build and run tests
