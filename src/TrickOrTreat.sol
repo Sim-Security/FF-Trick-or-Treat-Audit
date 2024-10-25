@@ -56,6 +56,7 @@ contract SpookySwap is ERC721URIStorage, Ownable(msg.sender), ReentrancyGuard {
         uint256 random =
             uint256(keccak256(abi.encodePacked(block.timestamp, msg.sender, nextTokenId, block.prevrandao))) % 1000 + 1;
 
+        // q I think these check out, but not 100% sure
         if (random == 1) {
             // 1/1000 chance of half price (treat)
             costMultiplierNumerator = 1;
@@ -77,6 +78,7 @@ contract SpookySwap is ERC721URIStorage, Ownable(msg.sender), ReentrancyGuard {
             } else {
                 // User didn't send enough ETH
                 // Mint NFT to contract and store pending purchase
+                // q can we access this minted NFT from the contract?
                 uint256 tokenId = nextTokenId;
                 _mint(address(this), tokenId);
                 _setTokenURI(tokenId, treat.metadataURI);

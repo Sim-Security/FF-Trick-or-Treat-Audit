@@ -1,66 +1,71 @@
-## Foundry
+# First Flight #27: Trick or Treat
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+### Prize Pool
 
-Foundry consists of:
+- High - 100 XP
+- Medium - 20 XP
+- Low - 2 XP
 
--   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
--   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
--   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
--   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+- Starts: October 24, 2024 Noon UTC
 
-## Documentation
+- Ends: October, 31 2024 Noon UTC
 
-https://book.getfoundry.sh/
+- nSLOC: 109
 
-## Usage
+[//]: # (contest-details-open)
 
-### Build
+## About the Project
 
-```shell
-$ forge build
+**SpookySwap** is a Halloween-themed decentralized application where users can participate in a thrilling "Trick or Treat" experience! Swap ETH for special Halloween-themed NFT treats. But beware, you might get tricked! There's a small chance your treat will cost half the price, or you might have to pay double. Collect rare NFTs, trade them with friends, or hold onto them for spooky surprises. Will you be tricked or treated?
+
+### Actors
+
+- **Owner/Admin (Trusted)** - Can add new treats, set treat costs, and withdraw collected fees.
+- **User/Participant** - Can swap ETH for Halloween treat NFTs, experience "Trick or Treat", and trade NFTs with others.
+
+[//]: # (contest-details-close)
+
+[//]: # (scope-open)
+
+## Scope (contracts)
+
+All Contracts in `src` are in scope.
+
+```js
+src/
+├── SpookySwap.sol
+```
+Compatibilities
+
+- Blockchains: EVM Equivalent Chains Only
+- Tokens: Native ETH
+
+[//]: # (scope-close)
+
+[//]: # (getting-started-open)
+
+## Setup
+
+Clone the repo
+```bash
+git clone https://github.com/Cyfrin/2024-10-trick-or-treat.git
+```
+Open in VSCode
+```bash
+code 2024-10-trick-or-treat/
 ```
 
-### Test
-
-```shell
-$ forge test
+Build and run tests
+```bash
+forge test
 ```
 
-### Format
+[//]: # (getting-started-close)
 
-```shell
-$ forge fmt
-```
+[//]: # (known-issues-open)
 
-### Gas Snapshots
+## Known Issues
 
-```shell
-$ forge snapshot
-```
+- We're aware of the pseudorandom nature of the current implementation. This will be replaced with Chainlink VRF in later builds.
 
-### Anvil
-
-```shell
-$ anvil
-```
-
-### Deploy
-
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
-
-### Cast
-
-```shell
-$ cast <subcommand>
-```
-
-### Help
-
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
-```
+[//]: # (known-issues-close)
