@@ -12,3 +12,8 @@ docs/
 
 # Dotenv file
 .env
+
+# Node modules
+break_randomness_java/node_modules/
+node_modules/
+

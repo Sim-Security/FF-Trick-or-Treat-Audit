@@ -67,7 +67,8 @@ contract SpookySwap is ERC721URIStorage, Ownable(msg.sender), ReentrancyGuard {
             costMultiplierDenominator = 1;
         }
         // Else, normal price (multiplier remains 1/1)
-
+        // q We set required cost here. We can't change it later, right?
+        // a Looks like we also set it again in resolveTrick! This will lead to major price discrepancies.
         uint256 requiredCost = (treat.cost * costMultiplierNumerator) / costMultiplierDenominator;
 
         if (costMultiplierNumerator == 2 && costMultiplierDenominator == 1) {
@@ -87,13 +88,15 @@ contract SpookySwap is ERC721URIStorage, Ownable(msg.sender), ReentrancyGuard {
                 pendingNFTs[tokenId] = msg.sender;
                 pendingNFTsAmountPaid[tokenId] = msg.value;
                 tokenIdToTreatName[tokenId] = _treatName;
-
+                
+                // @audit - This event is emitted before the user is asked to resolve the trick.
                 emit Swapped(msg.sender, _treatName, tokenId);
 
                 // User needs to call fellForTrick() to finish the transaction
             }
         } else {
             // Normal price or half price
+            // e we only add to pendingNFTs if the user was `tricked` and didn't pay enough, otherwise it reverts the transaction.
             require(msg.value >= requiredCost, "Insufficient ETH sent for treat");
             mintTreat(msg.sender, treat);
         }
@@ -117,6 +120,7 @@ contract SpookySwap is ERC721URIStorage, Ownable(msg.sender), ReentrancyGuard {
     }
 
     // Function for users to complete their purchase if they didn't pay enough during a trick
+    // 
     function resolveTrick(uint256 tokenId) public payable nonReentrant {
         require(pendingNFTs[tokenId] == msg.sender, "Not authorized to complete purchase");
 
