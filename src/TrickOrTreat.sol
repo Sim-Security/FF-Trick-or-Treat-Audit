@@ -5,7 +5,7 @@ pragma solidity ^0.8.24;
 import "lib/openzeppelin-contracts/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "lib/openzeppelin-contracts/contracts/access/Ownable.sol";
 import "lib/openzeppelin-contracts/contracts/utils/ReentrancyGuard.sol";
-
+import {console2} from "forge-std/Test.sol";
 contract SpookySwap is ERC721URIStorage, Ownable(msg.sender), ReentrancyGuard {
     uint256 public nextTokenId;
     mapping(string => Treat) public treatList;
@@ -84,10 +84,15 @@ contract SpookySwap is ERC721URIStorage, Ownable(msg.sender), ReentrancyGuard {
                 _mint(address(this), tokenId);
                 _setTokenURI(tokenId, treat.metadataURI);
                 nextTokenId += 1;
+                // console2.log("requiredCost: ", requiredCost);
+                // console2.log("Next Token ID: ", nextTokenId);
 
                 pendingNFTs[tokenId] = msg.sender;
+                // console2.log("Pending NFT: ", pendingNFTs[tokenId]);
                 pendingNFTsAmountPaid[tokenId] = msg.value;
+                // console2.log("Pending NFT Amount Paid: ", pendingNFTsAmountPaid[tokenId]);
                 tokenIdToTreatName[tokenId] = _treatName;
+                // console2.log("Token ID to Treat Name: ", tokenIdToTreatName[tokenId]);
                 
                 // @audit - This event is emitted before the user is asked to resolve the trick.
                 emit Swapped(msg.sender, _treatName, tokenId);
@@ -129,8 +134,11 @@ contract SpookySwap is ERC721URIStorage, Ownable(msg.sender), ReentrancyGuard {
 
         uint256 requiredCost = treat.cost * 2; // Double price
         uint256 amountPaid = pendingNFTsAmountPaid[tokenId];
+        console2.log("Amount Paid: ", amountPaid);
         uint256 totalPaid = amountPaid + msg.value;
+        console2.log("Total Paid: ", totalPaid);
 
+        console2.log("Required Cost: ", requiredCost);
         require(totalPaid >= requiredCost, "Insufficient ETH sent to complete purchase");
 
         // Transfer the NFT to the buyer
