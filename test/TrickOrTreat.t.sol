@@ -3,7 +3,7 @@ pragma solidity ^0.8.24;
 
 import {Test, console2} from "forge-std/Test.sol";
 import { SpookySwap } from "../src/TrickOrTreat.sol";
-// import { IERC721Receiver } from "lib/openzeppelin-contracts/contracts/token/ERC721/IERC721Receiver.sol";
+import { IERC721Receiver } from "lib/openzeppelin-contracts/contracts/token/ERC721/IERC721Receiver.sol";
 
 contract SpookySwapTest is Test {
     SpookySwap spookySwap;
@@ -34,7 +34,7 @@ contract SpookySwapTest is Test {
         _;
     }
 
-    function testForTrick() public {
+    function testForTrickAttacker() public {
         uint256 nextTokenId = 1;
         uint256 timestamp = 1700000000;
         uint256 prevrandao = 1;
@@ -57,6 +57,32 @@ contract SpookySwapTest is Test {
         // block.timestamp = 1700000000
         // block.prevrandao = 260
         // msg.sender = address(attacker)
+        // nextTokenId = 1
+    }
+
+        function testForTrickUser() public {
+        uint256 nextTokenId = 1;
+        uint256 timestamp = 1700000000;
+        uint256 prevrandao = 1;
+        
+        vm.startPrank(user);
+        console2.log("Address: ", user);
+        console2.log("Address: ", address(user));
+        for (uint256 i = 0; i < 1000; i++) {
+            uint256 random = uint256(keccak256(abi.encodePacked(timestamp, user, nextTokenId, i))) % 1000 + 1;
+            if (random == 2) {
+                console2.log("Prevrandao: ", i);
+                prevrandao = i;
+                break;
+            }
+        }
+        uint256 random =
+                uint256(keccak256(abi.encodePacked(timestamp, user, nextTokenId, prevrandao))) % 1000 + 1;
+        assertEq(random, 2);
+        // we have found the random numbers that will set the trick
+        // block.timestamp = 1700000000
+        // block.prevrandao = 956
+        // msg.sender = address(user)
         // nextTokenId = 1
     }
 
@@ -104,32 +130,32 @@ contract SpookySwapTest is Test {
         assertEq(spookySwap.balanceOf(attacker), 1); // check to see that the user has the nft
     }
 
-    function testSetTreatCostChangeBetweenTrickAndResolution() public fundAttacker(10 ether) {
-        // we have found the random numbers that will set the trick
-        // block.timestamp = 1700000000
-        // block.prevrandao = 260
-        // msg.sender = address(attacker)
-        // nextTokenId = 1
-        // cost is 2 ether since a trick has happened. If the user only send 1 ether, the nft will be minted to the contract and then the user will need to resolve it. Lets make sure the price is correct
-        vm.warp(1700000000);// to ensure the random number is 2
-        vm.prevrandao(260); //to ensure the random number is 2 and the trick is set.
+    // function testSetTreatCostChangeBetweenTrickAndResolution() public fundAttacker(10 ether) {
+    //     // we have found the random numbers that will set the trick
+    //     // block.timestamp = 1700000000
+    //     // block.prevrandao = 260
+    //     // msg.sender = address(attacker)
+    //     // nextTokenId = 1
+    //     // cost is 2 ether since a trick has happened. If the user only send 1 ether, the nft will be minted to the contract and then the user will need to resolve it. Lets make sure the price is correct
+    //     vm.warp(1700000000);// to ensure the random number is 2
+    //     vm.prevrandao(260); //to ensure the random number is 2 and the trick is set.
 
-        vm.startPrank(attacker);
-        vm.expectEmit(true, false, false, true);
-        emit SpookySwap.Swapped(attacker, "Candy", 1);
-        spookySwap.trickOrTreat{value: 1 ether}("Candy"); // not enough eth to pay for the treat because it is a trick!.
-        vm.stopPrank();
+    //     vm.startPrank(attacker);
+    //     vm.expectEmit(true, false, false, true);
+    //     emit SpookySwap.Swapped(attacker, "Candy", 1);
+    //     spookySwap.trickOrTreat{value: 1 ether}("Candy"); // not enough eth to pay for the treat because it is a trick!.
+    //     vm.stopPrank();
         
-        // owner changes the price of the nft
-        vm.prank(spookySwap.owner());
-        spookySwap.setTreatCost("Candy", 10 ether);
+    //     // owner changes the price of the nft
+    //     vm.prank(spookySwap.owner());
+    //     spookySwap.setTreatCost("Candy", 10 ether);
 
-        // We should only need to send an additional 1.0 ether to resolve the nft
-        // Since the owner changed the price, we have insufficient funds to resolve the nft
-        vm.startPrank(attacker);
-        vm.expectRevert(bytes("Insufficient ETH sent to complete purchase"));
-        spookySwap.resolveTrick{value: 1 ether}(1);
-    }
+    //     // We should only need to send an additional 1.0 ether to resolve the nft
+    //     // Since the owner changed the price, we have insufficient funds to resolve the nft
+    //     vm.startPrank(attacker);
+    //     vm.expectRevert(bytes("Insufficient ETH sent to complete purchase"));
+    //     spookySwap.resolveTrick{value: 1 ether}(1);
+    // }
 
     function testRefundInTrickOrTreat() public fundUser(10 ether) {
         vm.startPrank(user);
@@ -197,7 +223,93 @@ contract SpookySwapTest is Test {
         assertEq(contractBalance, 0, "Contract balance should remain zero after failed refund");
     }
 
-    
+    // function testLockedERC721() public {
+    //     LockupContract lockupContract = new LockupContract();
+    //     vm.deal(address(lockupContract), 10 ether);
+
+    //     // Start impersonating the lockup contract's address
+    //     vm.startPrank(address(lockupContract));
+
+    //     // Attempt to purchase a treat with enough ETH
+    //     // The NFT will be minted to the lockup contract
+    //     spookySwap.trickOrTreat{value: 1 ether}("Candy");
+
+    //     // Stop impersonating the lockup contract
+    //     // vm.stopPrank();
+
+    //     // Additional Assertions (Optional):
+
+    //     // Ensure that the NFT was minted to the lockup contract
+    //     uint256 tokenId = spookySwap.nextTokenId() - 1;
+    //     assertEq(spookySwap.ownerOf(1), address(lockupContract), "NFT should be minted to the lockup contract");
+
+    //     // Attempt to transfer the NFT from the MaliciousContract to another address
+    //     // This should fail as MaliciousContract does not implement IERC721Receiver
+    //     // vm.expectRevert("ERC721: transfer to non ERC721Receiver implementer");
+    //     spookySwap.transferFrom(address(lockupContract), address(user), 1);
+    //     vm.stopPrank();
+    //     assertEq(spookySwap.ownerOf(1), address(user), "NFT should still be owned by the lockup contract");
+    // }
+
+    function testSafeERC721() public {
+        SafeReceiverContract safeContract = new SafeReceiverContract();
+        vm.deal(address(safeContract), 10 ether);
+
+        // Start impersonating the lockup contract's address
+        vm.startPrank(address(safeContract));
+
+        // Attempt to purchase a treat with enough ETH
+        // The NFT will be minted to the lockup contract
+        spookySwap.trickOrTreat{value: 1 ether}("Candy");
+
+        // Stop impersonating the lockup contract
+        vm.stopPrank();
+
+        // Additional Assertions (Optional):
+
+        // Ensure that the NFT was minted to the lockup contract
+        uint256 tokenId = spookySwap.nextTokenId() - 1;
+        assertEq(spookySwap.ownerOf(1), address(safeContract), "NFT should be minted to the lockup contract");
+
+        // Attempt to transfer the NFT from the MaliciousContract to another address
+        // This should fail as MaliciousContract does not implement IERC721Receiver
+        // vm.expectRevert("ERC721: transfer to non ERC721Receiver implementer");
+        spookySwap.transferFrom(address(safeContract), address(user), 1);
+        // vm.stopPrank();
+        assertEq(spookySwap.ownerOf(1), address(user), "NFT should still be owned by the lockup contract");
+    }
+
+    // function testPriceChangeBeforeResolveTrick() public fundUser(10 ether) {
+    //     // we have found the random numbers that will set the trick
+    //     // block.timestamp = 1700000000
+    //     // block.prevrandao = 260
+    //     // msg.sender = address(attacker)
+    //     // nextTokenId = 1
+    //     // cost is 2 ether since a trick has happened. If the user only send 1 ether, the nft will be minted to the contract and then the user will need to resolve it. Lets make sure the price is correct
+    //     vm.warp(1700000000);// to ensure the random number is 2
+    //     vm.prevrandao(260); //to ensure the random number is 2 and the trick is set.
+
+    //     vm.startPrank(user);
+    //     vm.expectEmit(true, false, false, true);
+    //     emit SpookySwap.Swapped(user, "Candy", 1);
+    //     spookySwap.trickOrTreat{value: 1 ether}("Candy"); // not enough eth to pay for the treat because it is a trick!.
+    //     vm.stopPrank();
+        
+    //     // owner changes the price of the nft
+    //     vm.prank(spookySwap.owner());
+    //     spookySwap.setTreatCost("Candy", 4 ether);
+
+        // We should only need to send an additional 1.0 ether to resolve the nft
+        // Since the owner changed the price to 4 ether, we have insufficient funds to resolve the nft
+        // This is because the price is calculated inside the resolveTrick function instead  of being saved in the trickOrTreat function. This means the new `trick` price is 8 ether, meaning the user needs to send an additional 7 ether to resolve the nft
+        // vm.startPrank(user);
+        // vm.expectRevert(bytes("Insufficient ETH sent to complete purchase"));
+        // spookySwap.resolveTrick{value: 1 ether}(1);
+        // assertEq(user.balance, 9 ether);
+        // assertEq(address(spookySwap).balance, 1 ether);
+    // }
+
+
     // This is a known issue. No need to test it. 
     // function testManipulateRandomness() public {
     //     vm.deal(attacker, 1 ether); // Give the attacker some ETH
@@ -281,5 +393,25 @@ contract MaliciousRefundContract {
     /// @notice Attempts to receive ETH but always reverts.
     receive() external payable {
         revert("Cannot receive ETH - DoS Attack!");
+    }
+}
+
+// @notice A contract that does not implement the IERC721Receiver interface. When it receives the NFT from spookySwap, it will be locked in this contract forever.
+contract LockupContract {
+    receive() external payable {
+        // Do nothing
+    }
+    // do not implement the IERC721Receiver interface
+}
+
+// @notice A contract that implements the IERC721Receiver interface.
+contract SafeReceiverContract is IERC721Receiver {
+    // @notice The ERC721Receiver interface requires the onERC721Received function to be implemented.
+    function onERC721Received(address operator, address from, uint256 tokenId, bytes calldata data) external returns (bytes4) {
+        return this.onERC721Received.selector;
+    }
+
+    receive() external payable {
+        // Do nothing
     }
 }

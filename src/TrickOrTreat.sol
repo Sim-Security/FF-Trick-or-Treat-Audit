@@ -127,6 +127,8 @@ contract SpookySwap is ERC721URIStorage, Ownable(msg.sender), ReentrancyGuard {
     // Function for users to complete their purchase if they didn't pay enough during a trick
     // 
     function resolveTrick(uint256 tokenId) public payable nonReentrant {
+        console2.log(pendingNFTs[tokenId]);
+        console2.log(msg.sender);
         require(pendingNFTs[tokenId] == msg.sender, "Not authorized to complete purchase");
 
         string memory treatName = tokenIdToTreatName[tokenId];
@@ -134,11 +136,11 @@ contract SpookySwap is ERC721URIStorage, Ownable(msg.sender), ReentrancyGuard {
 
         uint256 requiredCost = treat.cost * 2; // Double price
         uint256 amountPaid = pendingNFTsAmountPaid[tokenId];
-        console2.log("Amount Paid: ", amountPaid);
+        // console2.log("Amount Paid: ", amountPaid);
         uint256 totalPaid = amountPaid + msg.value;
-        console2.log("Total Paid: ", totalPaid);
+        // console2.log("Total Paid: ", totalPaid);
 
-        console2.log("Required Cost: ", requiredCost);
+        // console2.log("Required Cost: ", requiredCost);
         require(totalPaid >= requiredCost, "Insufficient ETH sent to complete purchase");
 
         // Transfer the NFT to the buyer
